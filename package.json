@@ -12,8 +12,10 @@
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
     "@types/jsdom": "^12.2.4",
+    "@types/line-reader": "0.0.28",
     "axios": "^0.19.2",
     "jsdom": "^16.0.1",
+    "line-reader": "^0.4.0",
     "tslib": "^1"
   },
   "devDependencies": {
