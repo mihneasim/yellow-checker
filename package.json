@@ -13,9 +13,11 @@
     "@oclif/plugin-help": "^2",
     "@types/jsdom": "^12.2.4",
     "@types/line-reader": "0.0.28",
+    "@types/nodemailer": "^6.4.0",
     "axios": "^0.19.2",
     "jsdom": "^16.0.1",
     "line-reader": "^0.4.0",
+    "nodemailer": "^6.4.2",
     "tslib": "^1"
   },
   "devDependencies": {
