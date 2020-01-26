@@ -3,6 +3,7 @@ import axios, { AxiosRequestConfig, AxiosPromise } from "axios";
 import { JSDOM } from "jsdom";
 import * as lineReader from "line-reader";
 import * as nodemailer from "nodemailer";
+import { IncomingWebhook } from "@slack/webhook";
 import Mail = require("nodemailer/lib/mailer");
 
 class YellowChecker extends Command {
@@ -16,13 +17,17 @@ class YellowChecker extends Command {
       char: "e",
       description: "send price alerts by email to specified address"
     }),
+    slack: flags.string({
+      char: "s",
+      description: "send price alerts by slack to the specified webhook URL"
+    }),
     config: flags.string({
       char: "c",
       description: "override configuration file"
     })
   };
 
-  static args = [{ name: "productSlug" }];
+  static args = [];
 
   async checkForProduct(slug: string, threshold: number) {
     const productURL = `https://shop.yellowstore.ro/${slug}`;
@@ -37,10 +42,34 @@ class YellowChecker extends Command {
         );
         console.log(`Price is ${price} vs threshold ${threshold}`);
         if (price < threshold) {
-          return `${productURL} has ${price} below ${threshold} threshold`;
+          return `${productURL} is now RON ${price} (below RON ${threshold} configured threshold)`;
         } else return null;
       }
     });
+  }
+
+  async sendSlackMsg(message: string, webhookURL: string) {
+    const webhook = new IncomingWebhook(webhookURL);
+    await webhook.send({ text: message });
+  }
+
+  sendEmail(value: string, email: string, emailTransport: Mail) {
+    console.log(`Sending email, contents: ${value}`);
+    emailTransport.sendMail(
+      {
+        from: "youremail@gmail.com",
+        to: email,
+        subject: "Price Alert",
+        text: value
+      },
+      function(error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("Email sent: " + info.response);
+        }
+      }
+    );
   }
 
   async run() {
@@ -60,22 +89,10 @@ class YellowChecker extends Command {
       let result = this.checkForProduct(slug, parseFloat(price));
       result.then(value => {
         if (value && flags.email && emailTransport) {
-          console.log(`Sending email, contents: ${value}`);
-          emailTransport.sendMail(
-            {
-              from: "youremail@gmail.com",
-              to: flags.email,
-              subject: "Price Alert",
-              text: value
-            },
-            function(error, info) {
-              if (error) {
-                console.log(error);
-              } else {
-                console.log("Email sent: " + info.response);
-              }
-            }
-          );
+          this.sendEmail(value, flags.email, emailTransport);
+        }
+        if (value && flags.slack) {
+          this.sendSlackMsg(value, flags.slack);
         }
       });
     });
