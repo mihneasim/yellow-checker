@@ -83,7 +83,7 @@ class YellowChecker extends Command {
         secure: false
       });
     }
-    const inputFile = args.config || "./configuration";
+    const inputFile = flags.config || "./configuration";
     lineReader.eachLine(inputFile, line => {
       const [slug, price] = line.split(" ");
       let result = this.checkForProduct(slug, parseFloat(price));
